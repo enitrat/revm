@@ -835,6 +835,10 @@ impl<'a, GSPEC: Spec + 'static, DB: Database> Host for EVMImpl<'a, GSPEC, DB> {
         self.data.code(address)
     }
 
+    fn nonce(&mut self, address: Address) -> Option<(u64, bool)> {
+        self.data.nonce(address)
+    }
+
     /// Get code hash of address.
     fn code_hash(&mut self, address: Address) -> Option<(B256, bool)> {
         self.data.code_hash(address)

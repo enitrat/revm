@@ -8,7 +8,7 @@ use crate::{
 };
 use alloc::{boxed::Box, vec::Vec};
 use core::cmp::min;
-use revm_primitives::BLOCK_HASH_HISTORY;
+use revm_primitives::{BLOCK_HASH_HISTORY, KECCAK_EMPTY};
 
 pub fn balance<H: Host, SPEC: Spec>(interpreter: &mut Interpreter<'_>, host: &mut H) {
     pop_address!(interpreter, address);
@@ -404,6 +404,11 @@ pub fn auth<H: Host, SPEC: Spec>(interpreter: &mut Interpreter<'_>, host: &mut H
         buf
     });
 
+    let Some((nonce, is_cold)) = host.nonce(authority) else {
+        interpreter.instruction_result = InstructionResult::FatalExternalError;
+        return;
+    };
+
     // Build the original auth message and compute the hash.
     let mut message = [0u8; 97];
     message[0] = 0x04; // AUTH_MAGIC - add constant?
@@ -412,8 +417,9 @@ pub fn auth<H: Host, SPEC: Spec>(interpreter: &mut Interpreter<'_>, host: &mut H
             .to_be_bytes::<32>()
             .as_ref(),
     );
-    message[33..65].copy_from_slice(interpreter.contract().address.into_word().as_ref());
-    message[65..97].copy_from_slice(commit.unwrap_or_default().as_ref());
+    message[33..65].copy_from_slice(U256::from(nonce).to_be_bytes::<32>().as_ref());
+    message[65..97].copy_from_slice(interpreter.contract().address.into_word().as_ref());
+    message[97..].copy_from_slice(commit.unwrap_or_default().as_ref());
     let message_hash = revm_primitives::keccak256(&message);
 
     // Verify the signature

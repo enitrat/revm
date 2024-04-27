@@ -76,6 +76,15 @@ impl<'a, DB: Database> EVMData<'a, DB> {
         Some((acc.info.code.clone().unwrap(), is_cold))
     }
 
+    /// Return account nonce and if address is cold loaded.
+    pub fn nonce(&mut self, address: Address) -> Option<(u64, bool)> {
+        self.journaled_state
+            .load_account(address, &mut self.db)
+            .map_err(|e| self.error = Some(e))
+            .ok()
+            .map(|(acc, is_cold)| (acc.info.nonce, is_cold))
+    }
+
     /// Get code hash of address.
     pub fn code_hash(&mut self, address: Address) -> Option<(B256, bool)> {
         let (acc, is_cold) = self

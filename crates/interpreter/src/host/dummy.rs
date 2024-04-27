@@ -59,6 +59,11 @@ impl Host for DummyHost {
     }
 
     #[inline]
+    fn nonce(&mut self, _address: Address) -> Option<(u64, bool)> {
+        Some((0, false))
+    }
+
+    #[inline]
     fn code_hash(&mut self, __address: Address) -> Option<(B256, bool)> {
         Some((KECCAK_EMPTY, false))
     }

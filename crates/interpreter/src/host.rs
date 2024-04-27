@@ -27,6 +27,8 @@ pub trait Host {
     /// Get code of `address` and if the account is cold.
     fn code(&mut self, address: Address) -> Option<(Bytecode, bool)>;
 
+    fn nonce(&mut self, address: Address) -> Option<(u64, bool)>;
+
     /// Get code hash of `address` and if the account is cold.
     fn code_hash(&mut self, address: Address) -> Option<(B256, bool)>;
 
